@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>LG생활건강 구매부문 랜덤 뽑기 🎲</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg1:#ffe6e6; --bg2:#e6f7ff; --bg3:#e6ffe6;
+      --text:#333; --muted:#666;
+      --btn1:#ff99cc; --btn2:#66ccff;
+      --card:#ffffff;
+    }
+    *{box-sizing:border-box}
+    html,body{
+      margin:0; padding:0; height:100%;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      color:var(--text);
+    }
+    body{
+      display:flex; align-items:center; justify-content:center;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      background-size: 200% 200%;
+      animation: bgshift 12s ease-in-out infinite;
+      padding:24px;
+    }
+    @keyframes bgshift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+    .wrap{
+      width:min(720px, 100%);
+      background:var(--card);
+      border-radius:24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      padding:28px;
+      text-align:center;
+    }
+    .badge{
+      display:inline-block;
+      padding:6px 12px;
+      border-radius:12px;
+      background: rgba(102,204,255,.18);
+      color:#146C94;
+      font-weight:700;
+      letter-spacing:.2px;
+      margin-bottom:12px;
+      font-size: 50px; /* ← 글씨 크기를 3배로 크게 */
+    }
+    h1{
+      margin:10px 0 8px;
+      font-size: clamp(24px, 2.6vw, 34px);
+    }
+    p.lead{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:14px;
+    }
+    textarea{
+      width:100%;
+      height:280px;
+      padding:14px 16px;
+      border-radius:14px;
+      border:2px solid #e8e8e8;
+      outline:none;
+      resize:none;
+      font-size:16px;
+      line-height:1.45;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    textarea:focus{
+      border-color:#b9e3ff;
+      box-shadow:0 0 0 6px rgba(102,204,255,.18);
+    }
+    .controls{
+      display:flex; gap:12px; justify-content:center; flex-wrap:wrap;
+      margin-top:14px;
+    }
+    button{
+      appearance:none; border:0; cursor:pointer;
+      padding:12px 22px; border-radius:999px; font-weight:800;
+      background:linear-gradient(135deg, var(--btn1), var(--btn2));
+      color:white; font-size:16px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.15);
+      transition: transform .12s ease, box-shadow .12s ease, opacity .2s ease;
+    }
+    button:hover{ transform: translateY(-1px); box-shadow:0 12px 22px rgba(0,0,0,.18); }
+    button:active{ transform: translateY(0); box-shadow:0 6px 14px rgba(0,0,0,.12); }
+    button:disabled{ opacity:.55; cursor:not-allowed; transform:none; box-shadow:none; }
+
+    .countdown, .result{
+      margin-top:26px;
+      font-weight:900;
+      letter-spacing:.5px;
+    }
+    .countdown{
+      font-size:46px;
+      color:#111;
+      min-height:1.4em;
+      opacity:0; transform:scale(.9);
+      transition: opacity .25s, transform .25s;
+    }
+    .countdown.show{ opacity:1; transform:scale(1); }
+    .ticker{
+      display:inline-block; min-width:2ch;
+      animation: pulse .85s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%{transform:scale(1)}
+      50%{transform:scale(1.08)}
+      100%{transform:scale(1)}
+    }
+
+    .result{
+      font-size: clamp(24px, 3vw, 36px);
+      background: linear-gradient(135deg, #ffb3d9, #99ddff);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      opacity:0; transform:translateY(6px) scale(.98);
+      transition: opacity .35s ease, transform .35s ease;
+    }
+    .result.show{ opacity:1; transform:translateY(0) scale(1); }
+    .tips{
+      margin-top:18px; font-size:13px; color:#777;
+    }
+    .chip{
+      display:inline-block; padding:6px 10px; border-radius:999px;
+      background:#f4f6f8; border:1px dashed #e3e6ea; margin:2px 4px;
+      font-size:12px; color:#666;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap" role="main">
+    <div class="badge">💼 LG생활건강 구매부문</div>
+    <h1>랜덤 뽑기 게임 🎲</h1>
+    <p class="lead">항목을 줄바꿈(Enter)으로 구분해서 입력하고 <b>추첨하기</b>를 눌러주세요.</p>
+
+    <textarea id="itemList" spellcheck="false" placeholder="예)
+아이스크림
+피자
+햄버거
+초밥"></textarea>
+
+    <div class="controls">
+      <button id="btnPick" aria-live="polite">✨ 추첨하기 ✨</button>
+      <button id="btnSample" type="button">샘플 넣기</button>
+      <button id="btnClear" type="button">지우기</button>
+    </div>
+
+    <div class="countdown" id="countdown" aria-live="assertive"></div>
+    <div class="result" id="result" aria-live="polite"></div>
+
+    <div class="tips" aria-hidden="true">
+      <span class="chip">Enter로 항목 구분</span>
+      <span class="chip">빈 줄은 자동 제거</span>
+      <span class="chip">중복 항목도 공정하게 랜덤</span>
+    </div>
+  </main>
+
+  <script>
+    const $ = (sel) => document.querySelector(sel);
+    const itemTA = $("#itemList");
+    const btnPick = $("#btnPick");
+    const btnSample = $("#btnSample");
+    const btnClear = $("#btnClear");
+    const boxCountdown = $("#countdown");
+    const boxResult = $("#result");
+
+    function parseItems(text){
+      return text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+    }
+
+    // 카운트다운 틱
+    function playTick(){
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'square';
+      o.frequency.setValueAtTime(880, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.08);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.12);
+      o.connect(g).connect(ctx.destination);
+      o.start(); o.stop(ctx.currentTime + 0.13);
+    }
+
+    // 드럼롤
+    let rollTimer = null;
+    function startDrumRoll(durationMs=2200){
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const start = performance.now();
+      function hit(){
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'sine';
+        const t = (performance.now() - start) / durationMs;
+        const freq = 120 + t*180;
+        o.frequency.value = freq;
+        g.gain.value = 0.0;
+        o.connect(g).connect(ctx.destination);
+        o.start();
+        const now = ctx.currentTime;
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(0.25, now + 0.015);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+        o.stop(now + 0.11);
+        if (performance.now() - start < durationMs){
+          rollTimer = setTimeout(hit, 75);
+        }
+      }
+      hit();
+    }
+    function stopDrumRoll(){
+      if(rollTimer){ clearTimeout(rollTimer); rollTimer = null; }
+    }
+
+    // 팬페어
+    function playFanfare(){
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const now = ctx.currentTime;
+      const notes = [523.25, 659.25, 783.99];
+      notes.forEach((freq, i)=>{
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = 'triangle';
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0.0001, now + i*0.02);
+        g.gain.exponentialRampToValueAtTime(0.22, now + i*0.04);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + 0.45 + i*0.02);
+        o.connect(g).connect(ctx.destination);
+        o.start(now + i*0.02);
+        o.stop(now + 0.55 + i*0.02);
+      });
+    }
+
+    function setBusy(b){
+      btnPick.disabled = b;
+      btnSample.disabled = b;
+      btnClear.disabled = b;
+    }
+
+    btnSample.addEventListener('click', ()=>{
+      itemTA.value = ['아이스크림','피자','햄버거','초밥','파스타','김치볶음밥'].join('\n');
+      itemTA.focus();
+    });
+    btnClear.addEventListener('click', ()=>{
+      itemTA.value = '';
+      itemTA.focus();
+    });
+
+    btnPick.addEventListener('click', async ()=>{
+      const items = parseItems(itemTA.value);
+      if(items.length === 0){
+        alert('항목을 입력하세요!');
+        itemTA.focus();
+        return;
+      }
+
+      setBusy(true);
+      boxResult.textContent = '';
+      boxResult.classList.remove('show');
+
+      let count = 3;
+      boxCountdown.innerHTML = `⏳ <span class="ticker">${count}</span>`;
+      boxCountdown.classList.add('show');
+
+      startDrumRoll(2200);
+      playTick();
+
+      const tickInterval = setInterval(()=>{
+        count--;
+        if(count > 0){
+          boxCountdown.innerHTML = `⏳ <span class="ticker">${count}</span>`;
+          playTick();
+        }else{
+          clearInterval(tickInterval);
+          stopDrumRoll();
+          boxCountdown.innerHTML = `🔥 <span class="ticker">Go!</span>`;
+          setTimeout(()=>{
+            boxCountdown.classList.remove('show');
+            const idx = Math.floor(Math.random()*items.length);
+            const chosen = items[idx];
+
+            boxResult.textContent = `🎉 결과: ${chosen} 🎉`;
+            boxResult.classList.add('show');
+            playFanfare();
+            setBusy(false);
+          }, 350);
+        }
+      }, 800);
+    });
+
+    itemTA.addEventListener('keydown', (e)=>{
+      if(e.ctrlKey && e.key === 'Enter' && !btnPick.disabled){
+        btnPick.click();
+      }
+    });
+  </script>
+</body>
+</html>
